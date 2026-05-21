@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: sandeep-pvc17
+  name: sandeep-pvc11
   namespace: ns11
 spec:
   accessModes:
