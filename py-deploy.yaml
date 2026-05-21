@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: python-container
-          image: gonurup/py-may26:${IMAGE_TAG}
+          image: sandeepraparthi/py-may26:${IMAGE_TAG}
           ports:
             - containerPort: 8000
           env:
