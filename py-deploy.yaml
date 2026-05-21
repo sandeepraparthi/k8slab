@@ -39,4 +39,4 @@ spec:
       volumes:
       - name: my-storage-11
         persistentVolumeClaim:
-          claimName: sandeep-pvc17              
+          claimName: sandeep-pvc11              
