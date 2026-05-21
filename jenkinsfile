@@ -1,0 +1,73 @@
+pipeline {
+  agent {label 'ns11-kube'}
+ 
+  stages {
+    
+    stage('Checkout') {
+      steps {
+        git branch: 'main',
+                    credentialsId: 'ns11-github-cred',
+                    url: 'git@github.com:pgaws/k8slab.git'                    
+      }
+    }
+      stage('Check the docker cli') {
+      steps {
+        sh "docker --version"
+        sh "docker ps -a"
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        sh '''
+          docker build -t gonurup/py-may26:$BUILD_NUMBER app
+        '''
+      }
+    }
+        stage('Push Docker Image') {
+        steps {
+            withCredentials([
+            usernamePassword(
+                credentialsId: 'ns11-docker-cred',
+                usernameVariable: 'DOCKERHUB_USER',
+                passwordVariable: 'DOCKERHUB_PASS'
+            )
+            ]) {
+            sh '''
+                echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                docker push gonurup/py-may26:$BUILD_NUMBER
+                docker logout
+            '''
+            }
+        }
+    }
+    stage('Check on Kubernetes') {
+      steps {
+        sh '''
+          export KUBECONFIG=$HOME/k8s-3-node.conf
+          kubectl get pods
+          kubectl get svc
+          kubectl get deployments
+        '''
+      }
+    }
+    stage('Deploy - Template and Apply') {
+        steps {
+            sh '''
+            export KUBECONFIG=$HOME/k8s-3-node.conf
+            kubectl apply -f pv.yaml -f pvc.yaml -f py-service.yaml -f redis-service.yaml -f redis-deploy.yaml
+            export IMAGE_TAG=$BUILD_NUMBER
+            envsubst < py-deploy.yaml | kubectl apply -f -
+            kubectl rollout status deployment/py-deploy-11     
+        }
+    }
+    stage('Application Health Check') {
+      steps {
+        sh '''
+          sleep 10
+          curl http://172.31.15.50:30117
+        '''
+      }
+    }
+
+  }
+}
