@@ -9,7 +9,7 @@ pythonApp:
   name: python-app-11
   deploymentName: py-deploy-11
   serviceName: py-service-11
-  replicas: 3
+  replicas: 4
 
   service:
     type: NodePort

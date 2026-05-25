@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskapp
+  template:
+    metadata:
+      labels:
+        app: taskapp
+    spec:
+      containers:
+        - name: taskapp
+          image: sandeepraparthi/taskapp:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: taskapp-config
+                  key: SPRING_DATASOURCE_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              value: taskuser
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskapp-secret
+                  key: SPRING_DATASOURCE_PASSWORD
