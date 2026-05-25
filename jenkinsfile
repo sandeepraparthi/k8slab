@@ -1,13 +1,11 @@
 pipeline {
   agent {label 'ns11-kube'}
- 
   stages {
-    
     stage('Checkout') {
       steps {
         git branch: 'main',
                     credentialsId: 'ns11-github-cred',
-                    url: 'git@github.com:pgaws/k8slab.git'                    
+                    url: 'git@github.com:sandeepraparthi/k8slab.git'                    
       }
     }
       stage('Check the docker cli') {
@@ -19,7 +17,7 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         sh '''
-          docker build -t gonurup/py-may26:$BUILD_NUMBER app
+          docker build -t sandeepraparthi/taskapp:$BUILD_NUMBER springboot-docker-app
         '''
       }
     }
@@ -34,7 +32,7 @@ pipeline {
             ]) {
             sh '''
                 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                docker push gonurup/py-may26:$BUILD_NUMBER
+                docker push sandeepraparthi/taskapp:$BUILD_NUMBER
                 docker logout
             '''
             }
@@ -50,24 +48,43 @@ pipeline {
         '''
       }
     }
-    stage('Deploy - Template and Apply') {
+stage('Deploy - Template and Apply Capstone Proj') {
         steps {
             sh '''
             export KUBECONFIG=$HOME/k8s-3-node.conf
             kubectl apply -f pv.yaml -f pvc.yaml -f py-service.yaml -f redis-service.yaml -f redis-deploy.yaml
             export IMAGE_TAG=$BUILD_NUMBER
             envsubst < py-deploy.yaml | kubectl apply -f -
-            kubectl rollout status deployment/py-deploy-11     
+            kubectl -n ns11 rollout status deployment/py-deploy-11
+            '''
+        }
+    }
+    stage('Deploy - Template and Apply') {
+        steps {
+            sh '''
+            export KUBECONFIG=$HOME/k8s-3-node.conf
+            cd kub-deploy
+            kubectl apply -f . 
+            kubectl -n ns11 rollout status deployment/taskapp
+            '''
+        }
+    }
+    stage('Deploy - helm') {
+        steps {
+            sh '''
+            export KUBECONFIG=$HOME/k8s-3-node.conf
+            helm upgrade --install python-redis-chart-11 helm-deploy --set image.tag=$BUILD_NUMBER -n ns11
+            helm history python-redis-chart-11
+            '''
         }
     }
     stage('Application Health Check') {
       steps {
         sh '''
           sleep 10
-          curl http://172.31.15.50:30117
+          curl http://172.31.15.50:30111
         '''
       }
     }
-
   }
 }
