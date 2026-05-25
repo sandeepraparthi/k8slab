@@ -1,35 +1,12 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: {{ .Values.redis.deploymentName }}
+  name: {{ .Values.service.name }}
   namespace: {{ .Values.namespace }}
-
 spec:
-  replicas: {{ .Values.redis.replicas }}
-
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
-
+  type: {{ .Values.service.type }}
   selector:
-    matchLabels:
-      app: {{ .Values.redis.name }}
-
-  template:
-    metadata:
-      labels:
-        app: {{ .Values.redis.name }}
-
-    spec:
-      containers:
-        - name: redis-container
-
-          image: {{ .Values.redis.image }}
-
-          ports:
-            - containerPort: 6379
-
-          resources:
-{{ toYaml .Values.redis.resources | indent 12 }}
+    app: {{ .Values.app.name }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
