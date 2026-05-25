@@ -1,0 +1,67 @@
+namespace: ns11
+
+image:
+  repository: sandeepraparthi/k8slab
+  tag: 23
+  pullPolicy: IfNotPresent
+
+pythonApp:
+  name: python-app-11
+  deploymentName: py-deploy-11
+  serviceName: py-service-11
+  replicas: 3
+
+  service:
+    type: NodePort
+    port: 8000
+    targetPort: 8000
+    nodePort: 30111
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+redis:
+  name: redis-app-11
+  deploymentName: redis-deploy-11
+  serviceName: redis-service-11
+  replicas: 1
+
+  image: redis:latest
+
+  service:
+    type: ClusterIP
+    port: 6379
+    targetPort: 6379
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+persistence:
+  pv:
+    name: sandeep-pv11
+    storage: 5Gi
+    accessMode: ReadWriteOnce
+    reclaimPolicy: Retain
+    storageClassName: manual
+    labels:
+      type: fast-11
+
+    nfs:
+      path: /srv/nfs/kubedata/pyapp
+      server: 172.31.11.26
+
+  pvc:
+    name: sandeep-pvc11
+    storage: 1Gi
+    accessMode: ReadWriteOnce
+    storageClassName: manual

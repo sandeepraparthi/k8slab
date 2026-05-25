@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.pythonApp.deploymentName }}
+  namespace: {{ .Values.namespace }}
+
+spec:
+  replicas: {{ .Values.pythonApp.replicas }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app: {{ .Values.pythonApp.name }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.pythonApp.name }}
+
+    spec:
+      containers:
+        - name: python-container
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: REDIS_HOST
+              value: {{ .Values.redis.serviceName }}
+
+          resources:
+{{ toYaml .Values.pythonApp.resources | indent 12 }}
+
+          volumeMounts:
+            - mountPath: "/code"
+              name: my-storage-11
+
+      volumes:
+        - name: my-storage-11
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.pvc.name }}
