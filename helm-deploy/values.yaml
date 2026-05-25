@@ -34,7 +34,6 @@ redis:
   image: redis:latest
 
   service:
-    name: redis-service-11
     type: ClusterIP
     port: 6379
     targetPort: 6379
