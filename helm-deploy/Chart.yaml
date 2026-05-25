@@ -3,4 +3,4 @@ name: python-redis-chart-11
 description: Helm chart for Python app with Redis and NFS storage
 type: application
 version: 0.1.0
-appVersion: "1.0"
+appVersion: "1.1"
